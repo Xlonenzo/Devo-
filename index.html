@@ -676,6 +676,263 @@ body {
 
 .toast.show { transform: translateX(-50%) translateY(0); }
 
+/* ─── BOTTOM NAV ─────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border-top: 1px solid var(--line);
+  padding: 6px 0 calc(6px + var(--safe-bot));
+  display: flex;
+  justify-content: space-around;
+  z-index: 8;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 8px 28px;
+  color: var(--ink-faint);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: color 0.15s ease;
+}
+
+.nav-btn.active { color: var(--ink); }
+
+.nav-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.nav-btn.active svg { stroke-width: 2.2; }
+
+/* shift FAB above nav */
+.fab { bottom: calc(78px + var(--safe-bot)); }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* ─── DASHBOARD ──────────────────────────── */
+.dash-section {
+  margin-bottom: 28px;
+}
+
+.dash-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 20px;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ink-faint);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 28px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.kpi-value .unit {
+  font-size: 14px;
+  color: var(--ink-faint);
+  margin-left: 4px;
+  font-weight: 400;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+
+/* Donut card */
+.dash-donut-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.donut-svg {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.donut-track { fill: none; stroke: var(--bg-sunken); stroke-width: 14; }
+.donut-fill { fill: none; stroke: var(--accent); stroke-width: 14; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; }
+.donut-center {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 22px;
+  fill: var(--ink);
+}
+
+.donut-legend {
+  flex: 1;
+}
+
+.donut-legend-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.donut-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+.donut-legend-label { color: var(--ink-soft); }
+
+.donut-legend-val {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+/* Bars chart */
+.bars-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 28px;
+}
+
+.bars-svg {
+  width: 100%;
+  height: 120px;
+  display: block;
+  overflow: visible;
+}
+
+.bars-rect { fill: var(--accent-soft); }
+.bars-rect.empty { fill: var(--bg-sunken); }
+
+.bars-xaxis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+}
+
+/* top creditors */
+.top-list {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px 0;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.top-row:last-child { border-bottom: none; }
+
+.top-rank {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-faint);
+  width: 18px;
+}
+
+.top-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-count {
+  font-size: 11px;
+  color: var(--ink-faint);
+  background: var(--bg-sunken);
+  border-radius: 100px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+.top-val {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.dash-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ink-faint);
+  background: var(--bg-card);
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  font-size: 14px;
+}
+
 </style>
 </head>
 <body>
@@ -686,36 +943,73 @@ body {
     <div class="date" id="date"></div>
   </header>
 
-  <section class="hero">
-    <div class="hero-label">Total em aberto</div>
-    <div class="hero-amount" id="total">
-      <span class="currency">R$</span><span id="total-int">0</span><span class="cents" id="total-cents">,00</span>
+  <div class="view active" id="view-debts">
+    <section class="hero">
+      <div class="hero-label">Total em aberto</div>
+      <div class="hero-amount" id="total">
+        <span class="currency">R$</span><span id="total-int">0</span><span class="cents" id="total-cents">,00</span>
+      </div>
+      <div class="hero-sub">
+        <span><strong id="count-active">0</strong>dívidas</span>
+        <span class="sep">·</span>
+        <span><strong id="count-people">0</strong>credores</span>
+      </div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="active">
+        Ativas <span class="tab-count" id="tab-count-active">0</span>
+      </button>
+      <button class="tab" data-tab="paid">
+        Pagas <span class="tab-count" id="tab-count-paid">0</span>
+      </button>
+    </nav>
+
+    <div class="list" id="list"></div>
+
+    <section class="breakdown" id="breakdown" style="display:none">
+      <h2 class="breakdown-title">Por credor</h2>
+      <div id="breakdown-list"></div>
+    </section>
+  </div>
+
+  <div class="view" id="view-dashboard">
+    <section class="hero" style="margin-bottom: 24px">
+      <div class="hero-label">Visão geral</div>
+      <h1 class="dash-title" style="font-size: 32px; margin-top: 4px">Dashboard</h1>
+    </section>
+
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="dash-section">
+      <h2 class="dash-title">Pago vs em aberto</h2>
+      <div class="dash-donut-card" id="donut-card"></div>
     </div>
-    <div class="hero-sub">
-      <span><strong id="count-active">0</strong>dívidas</span>
-      <span class="sep">·</span>
-      <span><strong id="count-people">0</strong>credores</span>
+
+    <div class="dash-section">
+      <h2 class="dash-title">Pagamentos · últimos 30 dias</h2>
+      <div class="bars-card" id="bars-card"></div>
     </div>
-  </section>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="active">
-      Ativas <span class="tab-count" id="tab-count-active">0</span>
-    </button>
-    <button class="tab" data-tab="paid">
-      Pagas <span class="tab-count" id="tab-count-paid">0</span>
-    </button>
-  </nav>
-
-  <div class="list" id="list"></div>
-
-  <section class="breakdown" id="breakdown" style="display:none">
-    <h2 class="breakdown-title">Por credor</h2>
-    <div id="breakdown-list"></div>
-  </section>
+    <div class="dash-section">
+      <h2 class="dash-title">Top credores</h2>
+      <div id="top-creditors"></div>
+    </div>
+  </div>
 </div>
 
 <button class="fab" id="fab" aria-label="Adicionar dívida">+</button>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-view="debts" aria-label="Dívidas">
+    <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke-linecap="round"/></svg>
+    <span>Dívidas</span>
+  </button>
+  <button class="nav-btn" data-view="dashboard" aria-label="Dashboard">
+    <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg>
+    <span>Dashboard</span>
+  </button>
+</nav>
 
 <div class="backdrop" id="backdrop"></div>
 
@@ -1096,6 +1390,180 @@ document.getElementById('pay-history-list').addEventListener('click', (e) => {
   renderPaySheet();
   toast('Pagamento removido');
 });
+
+/* ── View switching ── */
+let currentView = 'debts';
+document.querySelectorAll('.nav-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    currentView = b.dataset.view;
+    document.querySelectorAll('.nav-btn').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + currentView));
+    document.getElementById('fab').style.display = currentView === 'debts' ? 'flex' : 'none';
+    if (currentView === 'dashboard') renderDashboard();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  });
+});
+
+/* ── Dashboard metrics ── */
+function allPayments() {
+  const out = [];
+  debts.forEach(d => (d.payments || []).forEach(p => out.push({ ...p, debtId: d.id, who: d.who })));
+  return out;
+}
+
+function avgSettleDays() {
+  const closed = debts.filter(d => d.paid && d.paidAt && d.created);
+  if (!closed.length) return null;
+  const sum = closed.reduce((s, d) => s + (d.paidAt - d.created), 0);
+  return sum / closed.length / 86400000;
+}
+
+function paymentsLast30Days() {
+  const now = new Date();
+  now.setHours(23, 59, 59, 999);
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    days.push({ date: d.getTime(), total: 0 });
+  }
+  const dayStart = days[0].date;
+  allPayments().forEach(p => {
+    if (p.date < dayStart) return;
+    const dayIdx = Math.floor((p.date - dayStart) / 86400000);
+    if (dayIdx >= 0 && dayIdx < 30) days[dayIdx].total += p.amount;
+  });
+  return days;
+}
+
+function topCreditors(n = 5) {
+  const map = {};
+  debts.forEach(d => {
+    const k = d.who.trim();
+    if (!map[k]) map[k] = { who: k, total: 0, remaining: 0, count: 0, paidCount: 0 };
+    map[k].total += d.amount;
+    map[k].remaining += remaining(d);
+    map[k].count += 1;
+    if (d.paid) map[k].paidCount += 1;
+  });
+  return Object.values(map).sort((a, b) => b.total - a.total).slice(0, n);
+}
+
+function renderDashboard() {
+  const totalAmount = debts.reduce((s, d) => s + d.amount, 0);
+  const totalPaidAll = debts.reduce((s, d) => s + totalPaid(d), 0);
+  const totalOpen = debts.reduce((s, d) => s + remaining(d), 0);
+  const closedCount = debts.filter(d => d.paid).length;
+  const activeCount = debts.filter(d => !d.paid).length;
+  const partialCount = debts.filter(d => !d.paid && totalPaid(d) > 0).length;
+  const avg = avgSettleDays();
+
+  // KPIs
+  const kpiGrid = document.getElementById('kpi-grid');
+  const kpis = [
+    { label: 'Total quitado', val: 'R$ ' + fmt(totalPaidAll), sub: closedCount + (closedCount === 1 ? ' dívida paga' : ' dívidas pagas') },
+    { label: 'Em aberto', val: 'R$ ' + fmt(totalOpen), sub: activeCount + (activeCount === 1 ? ' dívida ativa' : ' dívidas ativas') },
+    { label: 'Tempo médio', val: avg == null ? '—' : Math.round(avg) + '<span class="unit">dias</span>', sub: avg == null ? 'nenhuma quitada ainda' : 'da criação até quitar' },
+    { label: 'Pagamentos parciais', val: partialCount, sub: partialCount ? 'em andamento' : 'nenhum em curso' }
+  ];
+  kpiGrid.innerHTML = kpis.map(k => `
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>
+  `).join('');
+
+  // Donut
+  renderDonut(totalPaidAll, totalOpen);
+
+  // Bars
+  renderBars(paymentsLast30Days());
+
+  // Top creditors
+  renderTopCreditors(topCreditors(5));
+}
+
+function renderDonut(paid, open) {
+  const total = paid + open;
+  const card = document.getElementById('donut-card');
+  if (total === 0) {
+    card.innerHTML = '<div class="dash-empty" style="flex:1;background:none;border:none;padding:20px 0">Nenhuma dívida registrada ainda.</div>';
+    return;
+  }
+  const pct = total > 0 ? (paid / total) * 100 : 0;
+  const r = 42;
+  const circ = 2 * Math.PI * r;
+  const filled = (pct / 100) * circ;
+  card.innerHTML = `
+    <svg class="donut-svg" viewBox="0 0 100 100">
+      <circle class="donut-track" cx="50" cy="50" r="${r}"/>
+      <circle class="donut-fill" cx="50" cy="50" r="${r}"
+        stroke-dasharray="${filled} ${circ - filled}"
+        transform="rotate(-90 50 50)"/>
+      <text class="donut-center" x="50" y="54" text-anchor="middle">${Math.round(pct)}%</text>
+    </svg>
+    <div class="donut-legend">
+      <div class="donut-legend-row">
+        <span class="donut-legend-label"><span class="donut-legend-dot" style="background:var(--accent)"></span>Quitado</span>
+        <span class="donut-legend-val">R$ ${fmt(paid)}</span>
+      </div>
+      <div class="donut-legend-row">
+        <span class="donut-legend-label"><span class="donut-legend-dot" style="background:var(--bg-sunken);border:1px solid var(--line)"></span>Em aberto</span>
+        <span class="donut-legend-val">R$ ${fmt(open)}</span>
+      </div>
+      <div class="donut-legend-row" style="border-top:1px solid var(--line);margin-top:4px;padding-top:8px">
+        <span class="donut-legend-label">Total original</span>
+        <span class="donut-legend-val">R$ ${fmt(total)}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderBars(days) {
+  const card = document.getElementById('bars-card');
+  const max = Math.max(...days.map(d => d.total), 1);
+  const total30 = days.reduce((s, d) => s + d.total, 0);
+  const count30 = days.filter(d => d.total > 0).length;
+  if (total30 === 0) {
+    card.innerHTML = '<div class="dash-empty" style="background:none;border:none;padding:20px 0">Nenhum pagamento nos últimos 30 dias.</div>';
+    return;
+  }
+  const w = 100, h = 100, gap = 0.3, bw = (w - gap * 29) / 30;
+  const bars = days.map((d, i) => {
+    const barH = (d.total / max) * (h - 8);
+    const x = i * (bw + gap);
+    const y = h - barH;
+    return `<rect class="bars-rect ${d.total === 0 ? 'empty' : ''}" x="${x}" y="${y}" width="${bw}" height="${Math.max(barH, 1)}" rx="0.5"/>`;
+  }).join('');
+  const firstLabel = fmtDate(days[0].date);
+  const lastLabel = fmtDate(days[days.length - 1].date);
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:13px;color:var(--ink-soft)">
+      <div>Total pago: <strong style="font-family:'Fraunces',serif;color:var(--ink)">R$ ${fmt(total30)}</strong></div>
+      <div>${count30} ${count30 === 1 ? 'dia' : 'dias'} com pagamento</div>
+    </div>
+    <svg class="bars-svg" viewBox="0 0 100 100" preserveAspectRatio="none">${bars}</svg>
+    <div class="bars-xaxis"><span>${firstLabel}</span><span>${lastLabel}</span></div>
+  `;
+}
+
+function renderTopCreditors(rows) {
+  const host = document.getElementById('top-creditors');
+  if (!rows.length) {
+    host.innerHTML = '<div class="dash-empty">Nenhum credor ainda.</div>';
+    return;
+  }
+  host.innerHTML = '<div class="top-list">' + rows.map((r, i) => `
+    <div class="top-row">
+      <span class="top-rank">${i + 1}</span>
+      <span class="top-name">${escapeHtml(r.who)}</span>
+      <span class="top-count">${r.count}×${r.paidCount ? ` · ${r.paidCount} pg` : ''}</span>
+      <span class="top-val">R$ ${fmt(r.total)}</span>
+    </div>
+  `).join('') + '</div>';
+}
 
 /* ── Toast ── */
 let toastT;

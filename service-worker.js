@@ -1,4 +1,4 @@
-const CACHE = 'devo-v1';
+const CACHE = 'devo-v2';
 const ASSETS = [
   '/',
   '/index.html',
