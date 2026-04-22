@@ -308,6 +308,115 @@ body {
 
 .item-del:active { color: var(--accent); opacity: 1; }
 
+.item.partial { flex-wrap: wrap; }
+
+.item-progress {
+  flex-basis: 100%;
+  margin-top: 4px;
+  margin-left: 40px;
+  height: 3px;
+  background: var(--bg-sunken);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.item-progress-fill {
+  height: 100%;
+  background: var(--accent-soft);
+  transition: width 0.3s ease;
+}
+
+.item-main .item-paid-hint {
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ─── PAY SHEET ──────────────────────────── */
+.pay-summary {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.pay-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.pay-summary-row strong {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+
+.pay-summary-row.remaining strong {
+  color: var(--accent);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.pay-history {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.pay-history-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ink-faint);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.pay-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  gap: 10px;
+}
+
+.pay-history-item:last-child { border-bottom: none; }
+
+.pay-history-date {
+  color: var(--ink-faint);
+  font-size: 12px;
+  flex: 1;
+}
+
+.pay-history-amount {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.pay-history-del {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.5;
+}
+
+.pay-history-del:active { color: var(--accent); opacity: 1; }
+
 /* ─── BREAKDOWN ──────────────────────────── */
 .breakdown {
   margin-top: 36px;
@@ -635,6 +744,33 @@ body {
   </div>
 </div>
 
+<div class="sheet" id="pay-sheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <h2 class="sheet-title" id="pay-title">Registrar pagamento</h2>
+
+  <div class="pay-summary">
+    <div class="pay-summary-row"><span>Total da dívida</span><strong id="pay-total">R$ 0,00</strong></div>
+    <div class="pay-summary-row"><span>Já pago</span><strong id="pay-paid">R$ 0,00</strong></div>
+    <div class="pay-summary-row remaining"><span>Falta pagar</span><strong id="pay-remaining">R$ 0,00</strong></div>
+  </div>
+
+  <div class="field">
+    <label for="pay-amount">Valor pago agora (R$)</label>
+    <input type="number" id="pay-amount" inputmode="decimal" step="0.01" placeholder="0,00">
+  </div>
+
+  <div class="pay-history" id="pay-history" style="display:none">
+    <div class="pay-history-title">Histórico</div>
+    <div id="pay-history-list"></div>
+  </div>
+
+  <div class="sheet-actions">
+    <button class="btn btn-ghost" id="pay-cancel">Fechar</button>
+    <button class="btn btn-ghost" id="pay-full">Quitar tudo</button>
+    <button class="btn btn-primary" id="pay-save" disabled>Registrar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -644,7 +780,8 @@ const store = {
   _key: 'devo.debts.v1',
   load() {
     try {
-      return JSON.parse(localStorage.getItem(this._key) || '[]');
+      const raw = JSON.parse(localStorage.getItem(this._key) || '[]');
+      return raw.map(d => ({ ...d, payments: Array.isArray(d.payments) ? d.payments : [] }));
     } catch (e) {
       return this._fallback;
     }
@@ -666,6 +803,8 @@ let currentTab = 'active';
 const fmt = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtDate = (ts) => new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const totalPaid = (d) => (d.payments || []).reduce((s, p) => s + p.amount, 0);
+const remaining = (d) => Math.max(0, d.amount - totalPaid(d));
 
 /* ── Render ── */
 function render() {
@@ -673,7 +812,7 @@ function render() {
   const paid = debts.filter(d => d.paid);
 
   // total
-  const total = active.reduce((s, d) => s + d.amount, 0);
+  const total = active.reduce((s, d) => s + remaining(d), 0);
   const [intPart, centPart] = fmt(total).split(',');
   document.getElementById('total-int').textContent = intPart;
   document.getElementById('total-cents').textContent = ',' + centPart;
@@ -696,19 +835,30 @@ function render() {
         <div class="empty-text">${currentTab === 'active' ? 'Nenhuma dívida ativa.<br>Toque em + para registrar uma.' : 'Nenhuma dívida paga ainda.'}</div>
       </div>`;
   } else {
-    list.innerHTML = sorted.map(d => `
-      <div class="item ${d.paid ? 'paid' : ''}" data-id="${d.id}">
+    list.innerHTML = sorted.map(d => {
+      const paid = totalPaid(d);
+      const rem = remaining(d);
+      const isPartial = !d.paid && paid > 0 && rem > 0;
+      const progress = d.amount > 0 ? Math.min(100, (paid / d.amount) * 100) : 0;
+      const showAmount = d.paid ? d.amount : rem;
+      const metaParts = [];
+      if (d.note) metaParts.push(escapeHtml(d.note));
+      metaParts.push(fmtDate(d.created));
+      if (isPartial) metaParts.push(`<span class="item-paid-hint">pago R$ ${fmt(paid)} de ${fmt(d.amount)}</span>`);
+      return `
+      <div class="item ${d.paid ? 'paid' : ''} ${isPartial ? 'partial' : ''}" data-id="${d.id}">
         <div class="item-check" data-act="toggle" role="button" aria-label="Marcar como pago">
           <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7"/></svg>
         </div>
-        <div class="item-main">
+        <div class="item-main" data-act="pay">
           <div class="item-who">${escapeHtml(d.who)}</div>
-          <div class="item-meta">${d.note ? escapeHtml(d.note) + ' · ' : ''}${fmtDate(d.created)}</div>
+          <div class="item-meta">${metaParts.join(' · ')}</div>
         </div>
-        <div class="item-amount">R$ ${fmt(d.amount)}</div>
+        <div class="item-amount" data-act="pay">R$ ${fmt(showAmount)}</div>
         <button class="item-del" data-act="delete" aria-label="Excluir">×</button>
+        ${isPartial ? `<div class="item-progress"><div class="item-progress-fill" style="width:${progress}%"></div></div>` : ''}
       </div>
-    `).join('');
+    `;}).join('');
   }
 
   // breakdown
@@ -718,7 +868,7 @@ function render() {
     const byPerson = {};
     active.forEach(d => {
       const key = d.who.trim();
-      byPerson[key] = (byPerson[key] || 0) + d.amount;
+      byPerson[key] = (byPerson[key] || 0) + remaining(d);
     });
     const rows = Object.entries(byPerson).sort((a, b) => b[1] - a[1]);
     const max = rows[0][1];
@@ -764,6 +914,8 @@ document.getElementById('list').addEventListener('click', (e) => {
     store.save(debts);
     render();
     toast(debt.paid ? 'Marcada como paga ✓' : 'Reaberta');
+  } else if (act === 'pay') {
+    openPaySheet(id);
   } else if (act === 'delete') {
     if (confirm(`Excluir dívida com ${debt.who}?`)) {
       debts = debts.filter(d => d.id !== id);
@@ -805,7 +957,7 @@ function validate() {
 
 document.getElementById('fab').addEventListener('click', openSheet);
 document.getElementById('btn-cancel').addEventListener('click', closeSheet);
-backdrop.addEventListener('click', closeSheet);
+backdrop.addEventListener('click', () => { closeSheet(); closePaySheet(); });
 [inWho, inAmount].forEach(el => el.addEventListener('input', validate));
 
 btnSave.addEventListener('click', () => {
@@ -816,13 +968,133 @@ btnSave.addEventListener('click', () => {
     note: inNote.value.trim(),
     created: Date.now(),
     paid: false,
-    paidAt: null
+    paidAt: null,
+    payments: []
   };
   debts.push(debt);
   store.save(debts);
   render();
   closeSheet();
   toast('Dívida adicionada');
+});
+
+/* ── Pay sheet ── */
+const paySheet = document.getElementById('pay-sheet');
+const payAmount = document.getElementById('pay-amount');
+const paySave = document.getElementById('pay-save');
+const payFull = document.getElementById('pay-full');
+let payingId = null;
+
+function renderPaySheet() {
+  const d = debts.find(x => x.id === payingId);
+  if (!d) return;
+  const paid = totalPaid(d);
+  const rem = remaining(d);
+  document.getElementById('pay-title').textContent = `Pagamento · ${d.who}`;
+  document.getElementById('pay-total').textContent = 'R$ ' + fmt(d.amount);
+  document.getElementById('pay-paid').textContent = 'R$ ' + fmt(paid);
+  document.getElementById('pay-remaining').textContent = 'R$ ' + fmt(rem);
+  payAmount.max = rem;
+  payFull.style.display = rem > 0 ? '' : 'none';
+
+  const history = document.getElementById('pay-history');
+  const list = document.getElementById('pay-history-list');
+  if ((d.payments || []).length > 0) {
+    history.style.display = 'block';
+    const sorted = [...d.payments].sort((a, b) => b.date - a.date);
+    list.innerHTML = sorted.map((p, idx) => `
+      <div class="pay-history-item">
+        <span class="pay-history-date">${fmtDate(p.date)}</span>
+        <span class="pay-history-amount">R$ ${fmt(p.amount)}</span>
+        <button class="pay-history-del" data-pay-idx="${d.payments.indexOf(p)}" aria-label="Remover pagamento">×</button>
+      </div>
+    `).join('');
+  } else {
+    history.style.display = 'none';
+  }
+}
+
+function openPaySheet(id) {
+  payingId = id;
+  payAmount.value = '';
+  paySave.disabled = true;
+  renderPaySheet();
+  paySheet.classList.add('open');
+  backdrop.classList.add('open');
+  setTimeout(() => payAmount.focus(), 300);
+}
+
+function closePaySheet() {
+  paySheet.classList.remove('open');
+  backdrop.classList.remove('open');
+  payingId = null;
+  document.activeElement && document.activeElement.blur();
+}
+
+function validatePay() {
+  const d = debts.find(x => x.id === payingId);
+  if (!d) return;
+  const val = parseFloat(payAmount.value);
+  paySave.disabled = !(val > 0 && val <= remaining(d) + 0.009);
+}
+
+document.getElementById('pay-cancel').addEventListener('click', closePaySheet);
+payAmount.addEventListener('input', validatePay);
+
+paySave.addEventListener('click', () => {
+  const d = debts.find(x => x.id === payingId);
+  if (!d) return;
+  const val = Math.min(parseFloat(payAmount.value), remaining(d));
+  if (!(val > 0)) return;
+  d.payments = d.payments || [];
+  d.payments.push({ amount: val, date: Date.now() });
+  if (remaining(d) <= 0.005) {
+    d.paid = true;
+    d.paidAt = Date.now();
+  }
+  store.save(debts);
+  render();
+  toast(`Pagamento de R$ ${fmt(val)} registrado`);
+  if (d.paid) {
+    closePaySheet();
+  } else {
+    payAmount.value = '';
+    paySave.disabled = true;
+    renderPaySheet();
+  }
+});
+
+payFull.addEventListener('click', () => {
+  const d = debts.find(x => x.id === payingId);
+  if (!d) return;
+  const rem = remaining(d);
+  if (rem <= 0) return;
+  d.payments = d.payments || [];
+  d.payments.push({ amount: rem, date: Date.now() });
+  d.paid = true;
+  d.paidAt = Date.now();
+  store.save(debts);
+  render();
+  closePaySheet();
+  toast('Dívida quitada ✓');
+});
+
+document.getElementById('pay-history-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-pay-idx]');
+  if (!btn) return;
+  const d = debts.find(x => x.id === payingId);
+  if (!d) return;
+  const idx = parseInt(btn.dataset.payIdx, 10);
+  if (!confirm('Remover este pagamento?')) return;
+  d.payments.splice(idx, 1);
+  if (remaining(d) > 0 && d.paid) {
+    d.paid = false;
+    d.paidAt = null;
+  }
+  store.save(debts);
+  render();
+  renderPaySheet();
+  toast('Pagamento removido');
 });
 
 /* ── Toast ── */
