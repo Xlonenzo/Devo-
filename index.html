@@ -150,6 +150,24 @@ body {
   color: var(--line);
 }
 
+.hero-hint {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.hero-hint strong {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-style: normal;
+}
+
+.hero-hint .hero-hint-sep { color: var(--line); margin: 0 6px; }
+
 /* ─── TABS ───────────────────────────────── */
 .tabs {
   display: flex;
@@ -1182,6 +1200,7 @@ body {
         <span class="sep">·</span>
         <span><strong id="count-people">0</strong><span id="count-people-label">credores</span></span>
       </div>
+      <div class="hero-hint" id="hero-hint" style="display:none"></div>
     </section>
 
     <div class="seg full" id="seg-dir" role="tablist">
@@ -1383,11 +1402,34 @@ function render() {
   document.getElementById('count-active-label').textContent = currentDir === 'owed' ? 'cobranças' : 'dívidas';
   document.getElementById('count-people-label').textContent = currentDir === 'owed' ? 'pessoas' : 'credores';
 
-  // total
-  const total = active.reduce((s, d) => s + remaining(d), 0);
-  const [intPart, centPart] = fmt(total).split(',');
+  // gross (só a direção atual, ativas) e oposto (pra compensar)
+  const gross = active.reduce((s, d) => s + remaining(d), 0);
+  const oppositeKind = currentDir === 'owe' ? 'owed' : 'owe';
+  const oppositeRem = debts.filter(d => {
+    if (d.kind !== oppositeKind || d.paid) return false;
+    if (personFilter && d.who.trim().toLowerCase() !== personFilter.toLowerCase()) return false;
+    return true;
+  }).reduce((s, d) => s + remaining(d), 0);
+
+  const net = Math.max(0, gross - oppositeRem);
+  const [intPart, centPart] = fmt(net).split(',');
   document.getElementById('total-int').textContent = intPart;
   document.getElementById('total-cents').textContent = ',' + centPart;
+
+  const hint = document.getElementById('hero-hint');
+  if (oppositeRem > 0.005) {
+    const oppLabel = currentDir === 'owe' ? 'te devem' : 'você deve';
+    if (net > 0.005) {
+      hint.innerHTML = `Bruto <strong>R$ ${fmt(gross)}</strong><span class="hero-hint-sep">·</span>${oppLabel} <strong>R$ ${fmt(oppositeRem)}</strong>`;
+    } else {
+      const surplus = oppositeRem - gross;
+      const flipLabel = currentDir === 'owe' ? 'na verdade te devem' : 'na verdade você deve';
+      hint.innerHTML = `Tudo compensado<span class="hero-hint-sep">·</span>${flipLabel} <strong>R$ ${fmt(surplus)}</strong>`;
+    }
+    hint.style.display = '';
+  } else {
+    hint.style.display = 'none';
+  }
 
   // counters
   document.getElementById('count-active').textContent = active.length;
