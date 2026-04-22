@@ -1088,6 +1088,79 @@ body {
   margin-bottom: -2px;
 }
 
+/* ─── AUTOCOMPLETE ───────────────────────── */
+.autocomplete { position: relative; }
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 3;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  display: none;
+}
+
+.autocomplete-list.show { display: block; }
+
+.autocomplete-item {
+  padding: 11px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  border-top: 1px solid var(--line);
+  transition: background 0.1s ease;
+}
+
+.autocomplete-item:first-child { border-top: none; }
+
+.autocomplete-item:hover,
+.autocomplete-item.active { background: var(--bg-sunken); }
+
+.autocomplete-item .ac-name {
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autocomplete-item .ac-hint {
+  font-size: 11px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+}
+
+.autocomplete-item .ac-hint.cross {
+  color: var(--success);
+  font-weight: 600;
+  font-style: normal;
+  background: var(--success-bg);
+  padding: 3px 8px;
+  border-radius: 100px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.autocomplete-item.credit .ac-hint.cross {
+  color: var(--accent);
+  background: rgba(162, 59, 42, 0.1);
+}
+
 </style>
 </head>
 <body>
@@ -1201,9 +1274,10 @@ body {
     </div>
   </div>
 
-  <div class="field">
+  <div class="field autocomplete">
     <label for="in-who" id="label-who">Para quem</label>
     <input type="text" id="in-who" placeholder="Nome da pessoa ou lugar" autocomplete="off">
+    <div class="autocomplete-list" id="who-suggestions"></div>
   </div>
 
   <div class="field">
@@ -1478,7 +1552,75 @@ document.querySelectorAll('#seg-kind .seg-btn').forEach(b => {
   b.addEventListener('click', () => {
     formKind = b.dataset.kind;
     applyFormKind();
+    renderWhoSuggestions();
   });
+});
+
+/* ── Autocomplete de pessoas ── */
+function renderWhoSuggestions() {
+  const list = document.getElementById('who-suggestions');
+  const q = inWho.value.trim().toLowerCase();
+
+  const map = {};
+  debts.forEach(d => {
+    const key = d.who.trim().toLowerCase();
+    if (!map[key]) map[key] = { who: d.who.trim(), oweRem: 0, owedRem: 0, any: 0 };
+    map[key].any += 1;
+    if (!d.paid) {
+      if (d.kind === 'owed') map[key].owedRem += remaining(d);
+      else map[key].oweRem += remaining(d);
+    }
+  });
+
+  let people = Object.values(map);
+  if (q) people = people.filter(p => p.who.toLowerCase().includes(q));
+
+  const oppositeField = formKind === 'owe' ? 'owedRem' : 'oweRem';
+  people.sort((a, b) => {
+    const aCross = a[oppositeField] > 0 ? 1 : 0;
+    const bCross = b[oppositeField] > 0 ? 1 : 0;
+    if (aCross !== bCross) return bCross - aCross;
+    return a.who.localeCompare(b.who, 'pt-BR');
+  });
+
+  people = people.slice(0, 6);
+
+  if (!people.length) { list.classList.remove('show'); return; }
+
+  list.innerHTML = people.map(p => {
+    const cross = p[oppositeField];
+    const same = formKind === 'owe' ? p.oweRem : p.owedRem;
+    let hintHtml = '';
+    if (cross > 0.005) {
+      const label = formKind === 'owe' ? `te deve R$ ${fmt(cross)}` : `você deve R$ ${fmt(cross)}`;
+      hintHtml = `<span class="ac-hint cross">${label}</span>`;
+    } else if (same > 0.005) {
+      hintHtml = `<span class="ac-hint">já aberta</span>`;
+    } else {
+      hintHtml = `<span class="ac-hint">registrada</span>`;
+    }
+    return `
+      <div class="autocomplete-item ${formKind === 'owed' ? 'credit' : ''}" data-who="${escapeHtml(p.who)}">
+        <span class="ac-name">${escapeHtml(p.who)}</span>
+        ${hintHtml}
+      </div>
+    `;
+  }).join('');
+  list.classList.add('show');
+}
+
+inWho.addEventListener('input', renderWhoSuggestions);
+inWho.addEventListener('focus', renderWhoSuggestions);
+inWho.addEventListener('blur', () => setTimeout(() => document.getElementById('who-suggestions').classList.remove('show'), 180));
+
+document.getElementById('who-suggestions').addEventListener('mousedown', (e) => {
+  const item = e.target.closest('[data-who]');
+  if (!item) return;
+  e.preventDefault();
+  inWho.value = item.dataset.who;
+  document.getElementById('who-suggestions').classList.remove('show');
+  validate();
+  inAmount.focus();
 });
 
 function closeSheet() {
