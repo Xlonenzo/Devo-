@@ -933,6 +933,161 @@ body {
   font-size: 14px;
 }
 
+/* ─── SEGMENTED CONTROL ──────────────────── */
+.seg {
+  display: inline-flex;
+  background: var(--bg-sunken);
+  border-radius: 100px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg.full { display: flex; margin-bottom: 16px; }
+.seg.full .seg-btn { flex: 1; }
+
+.seg-btn {
+  background: none;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.seg-btn.active {
+  background: var(--bg-card);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Credit color (they owe me) */
+.item.credit .item-amount { color: var(--success); }
+.hero-amount.credit { color: var(--success); }
+.item.credit .item-progress-fill { background: #6B8A6A; }
+
+.dir-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  margin-top: 6px;
+}
+
+.dir-label.credit { color: var(--success); }
+
+/* Filter chip */
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 6px 6px 6px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  color: var(--ink-soft);
+}
+
+.filter-chip strong { color: var(--ink); font-weight: 700; }
+
+.filter-chip button {
+  background: var(--bg-sunken);
+  border: none;
+  color: var(--ink-soft);
+  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-chip button:active { background: var(--accent); color: var(--bg); }
+
+/* ─── PEOPLE ─────────────────────────────── */
+.person-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.person-card:active { transform: scale(0.99); }
+
+.person-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.person-name {
+  font-weight: 700;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.person-net {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.person-net.debit { color: var(--accent); }
+.person-net.credit { color: var(--success); }
+.person-net.zero { color: var(--ink-faint); font-size: 14px; font-style: italic; }
+
+.person-breakdown {
+  display: flex;
+  gap: 18px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  flex-wrap: wrap;
+}
+
+.person-breakdown span strong {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  margin-right: 3px;
+}
+
+.person-net-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  display: block;
+  text-align: right;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  margin-bottom: -2px;
+}
+
 </style>
 </head>
 <body>
@@ -945,16 +1100,23 @@ body {
 
   <div class="view active" id="view-debts">
     <section class="hero">
-      <div class="hero-label">Total em aberto</div>
+      <div class="hero-label" id="hero-label">Total que você deve</div>
       <div class="hero-amount" id="total">
         <span class="currency">R$</span><span id="total-int">0</span><span class="cents" id="total-cents">,00</span>
       </div>
       <div class="hero-sub">
-        <span><strong id="count-active">0</strong>dívidas</span>
+        <span><strong id="count-active">0</strong><span id="count-active-label">dívidas</span></span>
         <span class="sep">·</span>
-        <span><strong id="count-people">0</strong>credores</span>
+        <span><strong id="count-people">0</strong><span id="count-people-label">credores</span></span>
       </div>
     </section>
+
+    <div class="seg full" id="seg-dir" role="tablist">
+      <button class="seg-btn active" data-dir="owe">Eu devo</button>
+      <button class="seg-btn" data-dir="owed">Me devem</button>
+    </div>
+
+    <div id="filter-chip-host"></div>
 
     <nav class="tabs">
       <button class="tab active" data-tab="active">
@@ -996,6 +1158,16 @@ body {
       <div id="top-creditors"></div>
     </div>
   </div>
+
+  <div class="view" id="view-people">
+    <section class="hero" style="margin-bottom: 24px">
+      <div class="hero-label">Saldo líquido por pessoa</div>
+      <h1 class="dash-title" style="font-size: 32px; margin-top: 4px">Pessoas</h1>
+      <div class="hero-sub" id="people-summary"></div>
+    </section>
+
+    <div id="people-list"></div>
+  </div>
 </div>
 
 <button class="fab" id="fab" aria-label="Adicionar dívida">+</button>
@@ -1004,6 +1176,10 @@ body {
   <button class="nav-btn active" data-view="debts" aria-label="Dívidas">
     <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke-linecap="round"/></svg>
     <span>Dívidas</span>
+  </button>
+  <button class="nav-btn" data-view="people" aria-label="Pessoas">
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-5.5 6-5.5s6 2 6 5.5" stroke-linecap="round"/><circle cx="16.5" cy="9" r="2.6"/><path d="M14 14.5c3 .3 5 2 5 4.5" stroke-linecap="round"/></svg>
+    <span>Pessoas</span>
   </button>
   <button class="nav-btn" data-view="dashboard" aria-label="Dashboard">
     <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke-linecap="round"/></svg>
@@ -1018,7 +1194,15 @@ body {
   <h2 class="sheet-title" id="sheet-title">Nova dívida</h2>
 
   <div class="field">
-    <label for="in-who">Para quem</label>
+    <label>Tipo</label>
+    <div class="seg full" id="seg-kind" style="margin-bottom:0">
+      <button type="button" class="seg-btn active" data-kind="owe">Eu devo</button>
+      <button type="button" class="seg-btn" data-kind="owed">Me devem</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="in-who" id="label-who">Para quem</label>
     <input type="text" id="in-who" placeholder="Nome da pessoa ou lugar" autocomplete="off">
   </div>
 
@@ -1075,7 +1259,11 @@ const store = {
   load() {
     try {
       const raw = JSON.parse(localStorage.getItem(this._key) || '[]');
-      return raw.map(d => ({ ...d, payments: Array.isArray(d.payments) ? d.payments : [] }));
+      return raw.map(d => ({
+        ...d,
+        payments: Array.isArray(d.payments) ? d.payments : [],
+        kind: d.kind === 'owed' ? 'owed' : 'owe'
+      }));
     } catch (e) {
       return this._fallback;
     }
@@ -1092,6 +1280,9 @@ const store = {
 /* ── State ── */
 let debts = store.load();
 let currentTab = 'active';
+let currentDir = 'owe';
+let personFilter = null;
+let formKind = 'owe';
 
 /* ── Utils ── */
 const fmt = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1101,9 +1292,22 @@ const totalPaid = (d) => (d.payments || []).reduce((s, p) => s + p.amount, 0);
 const remaining = (d) => Math.max(0, d.amount - totalPaid(d));
 
 /* ── Render ── */
+function matchesFilters(d) {
+  if (d.kind !== currentDir) return false;
+  if (personFilter && d.who.trim().toLowerCase() !== personFilter.toLowerCase()) return false;
+  return true;
+}
+
 function render() {
-  const active = debts.filter(d => !d.paid);
-  const paid = debts.filter(d => d.paid);
+  const scoped = debts.filter(matchesFilters);
+  const active = scoped.filter(d => !d.paid);
+  const paid = scoped.filter(d => d.paid);
+
+  // hero label
+  document.getElementById('hero-label').textContent = currentDir === 'owed' ? 'Total a receber' : 'Total que você deve';
+  document.getElementById('total').classList.toggle('credit', currentDir === 'owed');
+  document.getElementById('count-active-label').textContent = currentDir === 'owed' ? 'cobranças' : 'dívidas';
+  document.getElementById('count-people-label').textContent = currentDir === 'owed' ? 'pessoas' : 'credores';
 
   // total
   const total = active.reduce((s, d) => s + remaining(d), 0);
@@ -1117,16 +1321,30 @@ function render() {
   document.getElementById('tab-count-active').textContent = active.length;
   document.getElementById('tab-count-paid').textContent = paid.length;
 
+  // filter chip
+  const chipHost = document.getElementById('filter-chip-host');
+  if (personFilter) {
+    chipHost.innerHTML = `<div class="filter-chip">Filtrando <strong>${escapeHtml(personFilter)}</strong><button id="clear-filter" aria-label="Limpar filtro">×</button></div>`;
+    document.getElementById('clear-filter').addEventListener('click', () => {
+      personFilter = null;
+      render();
+    });
+  } else {
+    chipHost.innerHTML = '';
+  }
+
   // list
   const list = document.getElementById('list');
   const items = currentTab === 'active' ? active : paid;
   const sorted = [...items].sort((a, b) => b.created - a.created);
 
   if (sorted.length === 0) {
+    const noun = currentDir === 'owed' ? 'cobrança' : 'dívida';
+    const nounP = currentDir === 'owed' ? 'cobranças recebidas' : 'dívidas pagas';
     list.innerHTML = `
       <div class="empty">
         <div class="empty-icon">${currentTab === 'active' ? '—' : '✓'}</div>
-        <div class="empty-text">${currentTab === 'active' ? 'Nenhuma dívida ativa.<br>Toque em + para registrar uma.' : 'Nenhuma dívida paga ainda.'}</div>
+        <div class="empty-text">${currentTab === 'active' ? `Nenhuma ${noun} ativa${personFilter ? ' com essa pessoa' : ''}.<br>Toque em + para registrar uma.` : `Nenhuma ${nounP} ainda${personFilter ? ' com essa pessoa' : ''}.`}</div>
       </div>`;
   } else {
     list.innerHTML = sorted.map(d => {
@@ -1140,7 +1358,7 @@ function render() {
       metaParts.push(fmtDate(d.created));
       if (isPartial) metaParts.push(`<span class="item-paid-hint">pago R$ ${fmt(paid)} de ${fmt(d.amount)}</span>`);
       return `
-      <div class="item ${d.paid ? 'paid' : ''} ${isPartial ? 'partial' : ''}" data-id="${d.id}">
+      <div class="item ${d.paid ? 'paid' : ''} ${isPartial ? 'partial' : ''} ${d.kind === 'owed' ? 'credit' : ''}" data-id="${d.id}">
         <div class="item-check" data-act="toggle" role="button" aria-label="Marcar como pago">
           <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7"/></svg>
         </div>
@@ -1193,6 +1411,15 @@ document.querySelectorAll('.tab').forEach(t => {
   });
 });
 
+document.querySelectorAll('#seg-dir .seg-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#seg-dir .seg-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    currentDir = b.dataset.dir;
+    render();
+  });
+});
+
 document.getElementById('list').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-act]');
   if (!btn) return;
@@ -1228,7 +1455,16 @@ const inAmount = document.getElementById('in-amount');
 const inNote = document.getElementById('in-note');
 const btnSave = document.getElementById('btn-save');
 
+function applyFormKind() {
+  document.querySelectorAll('#seg-kind .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === formKind));
+  document.getElementById('sheet-title').textContent = formKind === 'owed' ? 'Nova cobrança' : 'Nova dívida';
+  document.getElementById('label-who').textContent = formKind === 'owed' ? 'De quem' : 'Para quem';
+  inWho.placeholder = formKind === 'owed' ? 'Quem te deve' : 'Nome da pessoa ou lugar';
+}
+
 function openSheet() {
+  formKind = currentView === 'debts' ? currentDir : 'owe';
+  applyFormKind();
   sheet.classList.add('open');
   backdrop.classList.add('open');
   inWho.value = '';
@@ -1237,6 +1473,13 @@ function openSheet() {
   btnSave.disabled = true;
   setTimeout(() => inWho.focus(), 300);
 }
+
+document.querySelectorAll('#seg-kind .seg-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    formKind = b.dataset.kind;
+    applyFormKind();
+  });
+});
 
 function closeSheet() {
   sheet.classList.remove('open');
@@ -1263,13 +1506,16 @@ btnSave.addEventListener('click', () => {
     created: Date.now(),
     paid: false,
     paidAt: null,
-    payments: []
+    payments: [],
+    kind: formKind
   };
   debts.push(debt);
   store.save(debts);
+  if (debt.kind !== currentDir) currentDir = debt.kind;
+  document.querySelectorAll('#seg-dir .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.dir === currentDir));
   render();
   closeSheet();
-  toast('Dívida adicionada');
+  toast(debt.kind === 'owed' ? 'Cobrança adicionada' : 'Dívida adicionada');
 });
 
 /* ── Pay sheet ── */
@@ -1393,16 +1639,16 @@ document.getElementById('pay-history-list').addEventListener('click', (e) => {
 
 /* ── View switching ── */
 let currentView = 'debts';
-document.querySelectorAll('.nav-btn').forEach(b => {
-  b.addEventListener('click', () => {
-    currentView = b.dataset.view;
-    document.querySelectorAll('.nav-btn').forEach(x => x.classList.toggle('active', x === b));
-    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + currentView));
-    document.getElementById('fab').style.display = currentView === 'debts' ? 'flex' : 'none';
-    if (currentView === 'dashboard') renderDashboard();
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  });
-});
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.nav-btn').forEach(x => x.classList.toggle('active', x.dataset.view === v));
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('active', el.id === 'view-' + v));
+  document.getElementById('fab').style.display = (v === 'debts' || v === 'people') ? 'flex' : 'none';
+  if (v === 'dashboard') renderDashboard();
+  if (v === 'people') renderPeople();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchView(b.dataset.view)));
 
 /* ── Dashboard metrics ── */
 function allPayments() {
@@ -1451,32 +1697,35 @@ function topCreditors(n = 5) {
 }
 
 function renderDashboard() {
-  const totalAmount = debts.reduce((s, d) => s + d.amount, 0);
-  const totalPaidAll = debts.reduce((s, d) => s + totalPaid(d), 0);
-  const totalOpen = debts.reduce((s, d) => s + remaining(d), 0);
-  const closedCount = debts.filter(d => d.paid).length;
-  const activeCount = debts.filter(d => !d.paid).length;
-  const partialCount = debts.filter(d => !d.paid && totalPaid(d) > 0).length;
+  const owe = debts.filter(d => d.kind === 'owe');
+  const owed = debts.filter(d => d.kind === 'owed');
+
+  const oweOpen = owe.filter(d => !d.paid).reduce((s, d) => s + remaining(d), 0);
+  const owedOpen = owed.filter(d => !d.paid).reduce((s, d) => s + remaining(d), 0);
+  const owePaid = owe.reduce((s, d) => s + totalPaid(d), 0);
+  const owedPaid = owed.reduce((s, d) => s + totalPaid(d), 0);
+  const net = owedOpen - oweOpen;
   const avg = avgSettleDays();
 
-  // KPIs
   const kpiGrid = document.getElementById('kpi-grid');
+  const netCol = net > 0.005 ? 'var(--success)' : net < -0.005 ? 'var(--accent)' : 'var(--ink)';
+  const netSign = net > 0.005 ? '+' : net < -0.005 ? '−' : '';
   const kpis = [
-    { label: 'Total quitado', val: 'R$ ' + fmt(totalPaidAll), sub: closedCount + (closedCount === 1 ? ' dívida paga' : ' dívidas pagas') },
-    { label: 'Em aberto', val: 'R$ ' + fmt(totalOpen), sub: activeCount + (activeCount === 1 ? ' dívida ativa' : ' dívidas ativas') },
-    { label: 'Tempo médio', val: avg == null ? '—' : Math.round(avg) + '<span class="unit">dias</span>', sub: avg == null ? 'nenhuma quitada ainda' : 'da criação até quitar' },
-    { label: 'Pagamentos parciais', val: partialCount, sub: partialCount ? 'em andamento' : 'nenhum em curso' }
+    { label: 'Você deve', val: 'R$ ' + fmt(oweOpen), sub: owe.filter(d => !d.paid).length + ' em aberto', color: 'var(--accent)' },
+    { label: 'Te devem', val: 'R$ ' + fmt(owedOpen), sub: owed.filter(d => !d.paid).length + ' em aberto', color: 'var(--success)' },
+    { label: 'Líquido', val: `${netSign} R$ ${fmt(Math.abs(net))}`, sub: net > 0.005 ? 'a seu favor' : net < -0.005 ? 'contra você' : 'em equilíbrio', color: netCol },
+    { label: 'Tempo médio', val: avg == null ? '—' : Math.round(avg) + '<span class="unit">dias</span>', sub: avg == null ? 'nenhuma quitada' : 'da criação à quitação', color: 'var(--ink)' }
   ];
   kpiGrid.innerHTML = kpis.map(k => `
     <div class="kpi">
       <div class="kpi-label">${k.label}</div>
-      <div class="kpi-value">${k.val}</div>
+      <div class="kpi-value" style="color:${k.color}">${k.val}</div>
       <div class="kpi-sub">${k.sub}</div>
     </div>
   `).join('');
 
-  // Donut
-  renderDonut(totalPaidAll, totalOpen);
+  // Donut: combined paid vs open
+  renderDonut(owePaid + owedPaid, oweOpen + owedOpen);
 
   // Bars
   renderBars(paymentsLast30Days());
@@ -1564,6 +1813,101 @@ function renderTopCreditors(rows) {
     </div>
   `).join('') + '</div>';
 }
+
+/* ── People view ── */
+function peopleAggregate() {
+  const map = {};
+  debts.forEach(d => {
+    const raw = d.who.trim();
+    const key = raw.toLowerCase();
+    if (!map[key]) map[key] = {
+      key, who: raw,
+      oweRemaining: 0, oweCount: 0,
+      owedRemaining: 0, owedCount: 0,
+      oweTotal: 0, owedTotal: 0,
+      owePaid: 0, owedPaid: 0
+    };
+    const p = map[key];
+    if (d.kind === 'owed') {
+      p.owedCount += 1;
+      p.owedTotal += d.amount;
+      p.owedPaid += totalPaid(d);
+      if (!d.paid) p.owedRemaining += remaining(d);
+    } else {
+      p.oweCount += 1;
+      p.oweTotal += d.amount;
+      p.owePaid += totalPaid(d);
+      if (!d.paid) p.oweRemaining += remaining(d);
+    }
+  });
+  return Object.values(map).map(p => ({ ...p, net: p.owedRemaining - p.oweRemaining }));
+}
+
+function renderPeople() {
+  const people = peopleAggregate();
+  const host = document.getElementById('people-list');
+  const summary = document.getElementById('people-summary');
+
+  const totalOwe = people.reduce((s, p) => s + p.oweRemaining, 0);
+  const totalOwed = people.reduce((s, p) => s + p.owedRemaining, 0);
+  const net = totalOwed - totalOwe;
+
+  summary.innerHTML = `
+    <span><strong style="color:var(--accent)">R$ ${fmt(totalOwe)}</strong>você deve</span>
+    <span class="sep">·</span>
+    <span><strong style="color:var(--success)">R$ ${fmt(totalOwed)}</strong>te devem</span>
+    <span class="sep">·</span>
+    <span><strong style="color:${net >= 0 ? 'var(--success)' : 'var(--accent)'}">${net >= 0 ? '+' : '−'} R$ ${fmt(Math.abs(net))}</strong>líquido</span>
+  `;
+
+  if (!people.length) {
+    host.innerHTML = '<div class="dash-empty">Nenhuma pessoa registrada ainda.</div>';
+    return;
+  }
+
+  const sorted = [...people].sort((a, b) => Math.abs(b.net) - Math.abs(a.net) || (b.oweCount + b.owedCount) - (a.oweCount + a.owedCount));
+
+  host.innerHTML = sorted.map(p => {
+    let netCls = 'zero', netText = 'sem saldo';
+    if (p.net > 0.005) { netCls = 'credit'; netText = '+ R$ ' + fmt(p.net); }
+    else if (p.net < -0.005) { netCls = 'debit'; netText = '− R$ ' + fmt(Math.abs(p.net)); }
+
+    const netLabel = p.net > 0.005 ? 'te devem' : p.net < -0.005 ? 'você deve' : '';
+
+    const parts = [];
+    if (p.oweCount) parts.push(`<span>Você deve <strong>R$ ${fmt(p.oweRemaining)}</strong><span style="color:var(--ink-faint)">(${p.oweCount})</span></span>`);
+    if (p.owedCount) parts.push(`<span>Te deve <strong>R$ ${fmt(p.owedRemaining)}</strong><span style="color:var(--ink-faint)">(${p.owedCount})</span></span>`);
+
+    return `
+      <div class="person-card" data-person="${escapeHtml(p.who)}">
+        <div class="person-head">
+          <div class="person-name">${escapeHtml(p.who)}</div>
+          <div style="text-align:right">
+            ${netLabel ? `<span class="person-net-label">${netLabel}</span>` : ''}
+            <div class="person-net ${netCls}">${netText}</div>
+          </div>
+        </div>
+        <div class="person-breakdown">${parts.join('')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('people-list').addEventListener('click', (e) => {
+  const card = e.target.closest('.person-card');
+  if (!card) return;
+  personFilter = card.dataset.person;
+  // pick a dir that has data for this person
+  const person = peopleAggregate().find(p => p.who === personFilter);
+  if (person) {
+    if (person.oweCount && !person.owedCount) currentDir = 'owe';
+    else if (person.owedCount && !person.oweCount) currentDir = 'owed';
+    // else leave currentDir as is
+    document.querySelectorAll('#seg-dir .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.dir === currentDir));
+  }
+  switchView('debts');
+  render();
+});
 
 /* ── Toast ── */
 let toastT;
