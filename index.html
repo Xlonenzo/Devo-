@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Devo">
+<meta name="theme-color" content="#F5F1EA">
+<meta name="description" content="Controle pessoal de dívidas">
+<title>Devo — Controle de Dívidas</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%231A1A1A'/><text x='50%25' y='58%25' font-family='Georgia,serif' font-size='110' font-style='italic' font-weight='600' fill='%23F5F1EA' text-anchor='middle' dominant-baseline='middle'>D</text></svg>">
+
+<style>
+:root {
+  --bg: #F5F1EA;
+  --bg-card: #FFFDF8;
+  --bg-sunken: #EDE7DC;
+  --ink: #1A1A1A;
+  --ink-soft: #555049;
+  --ink-faint: #8A847B;
+  --line: #E1D9CA;
+  --accent: #A23B2A;
+  --accent-soft: #C76957;
+  --success: #3D5A3C;
+  --success-bg: #DCE5D9;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Manrope', -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bot);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(162, 59, 42, 0.04), transparent 60%);
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 120px;
+}
+
+/* ─── HEADER ─────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 32px;
+}
+
+.brand {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.brand::after {
+  content: '.';
+  color: var(--accent);
+}
+
+.date {
+  font-size: 13px;
+  color: var(--ink-faint);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+/* ─── HERO TOTAL ─────────────────────────── */
+.hero {
+  margin-bottom: 40px;
+}
+
+.hero-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.hero-amount {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-size: clamp(52px, 14vw, 88px);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-amount .currency {
+  font-size: 0.5em;
+  font-style: italic;
+  color: var(--ink-soft);
+  vertical-align: 0.25em;
+  margin-right: 0.1em;
+  font-weight: 400;
+}
+
+.hero-amount .cents {
+  font-size: 0.45em;
+  color: var(--ink-soft);
+  vertical-align: 0.6em;
+  font-weight: 400;
+}
+
+.hero-sub {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.hero-sub span strong {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  color: var(--ink);
+  margin-right: 4px;
+}
+
+.hero-sub .sep {
+  color: var(--line);
+}
+
+/* ─── TABS ───────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 12px 0;
+  margin-right: 24px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  cursor: pointer;
+  position: relative;
+  letter-spacing: 0.02em;
+}
+
+.tab.active {
+  color: var(--ink);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.tab-count {
+  display: inline-block;
+  margin-left: 6px;
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+/* ─── LIST ───────────────────────────────── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.item:active {
+  transform: scale(0.99);
+}
+
+.item.paid {
+  opacity: 0.55;
+  background: transparent;
+}
+
+.item.paid .item-amount {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-faint);
+}
+
+.item-check {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.item-check:active { transform: scale(0.9); }
+
+.item.paid .item-check {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.item-check svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--bg);
+  stroke-width: 3;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.item.paid .item-check svg { opacity: 1; }
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-who {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-meta {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-amount {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.item-del {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  padding: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.item-del:active { color: var(--accent); opacity: 1; }
+
+/* ─── BREAKDOWN ──────────────────────────── */
+.breakdown {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.breakdown-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.breakdown-name {
+  flex-shrink: 0;
+  font-weight: 600;
+  min-width: 80px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breakdown-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-sunken);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.breakdown-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.breakdown-amount {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 85px;
+  text-align: right;
+}
+
+/* ─── EMPTY ──────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-faint);
+}
+
+.empty-icon {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 64px;
+  color: var(--line);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 240px;
+  margin: 0 auto;
+}
+
+/* ─── FAB ────────────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: calc(24px + var(--safe-bot));
+  right: 50%;
+  transform: translateX(50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  font-size: 30px;
+  font-weight: 300;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(26, 26, 26, 0.25), 0 2px 4px rgba(26, 26, 26, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: transform 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+}
+
+.fab:active { transform: translateX(50%) scale(0.92); }
+
+/* ─── MODAL ──────────────────────────────── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 24px calc(24px + var(--safe-bot));
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  max-width: 640px;
+  margin: 0 auto;
+  box-shadow: 0 -8px 32px rgba(26, 26, 26, 0.15);
+}
+
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: -8px auto 20px;
+}
+
+.sheet-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 24px;
+  margin-bottom: 20px;
+  letter-spacing: -0.01em;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.field input, .field textarea {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+
+.field input:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.field input[type="number"] {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+}
+
+.field textarea {
+  resize: none;
+  min-height: 60px;
+  font-size: 14px;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.15s;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.btn-primary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+
+/* ─── TOAST ──────────────────────────────── */
+.toast {
+  position: fixed;
+  top: calc(16px + var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%) translateY(-120%);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 200;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <div class="brand">devo</div>
+    <div class="date" id="date"></div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-label">Total em aberto</div>
+    <div class="hero-amount" id="total">
+      <span class="currency">R$</span><span id="total-int">0</span><span class="cents" id="total-cents">,00</span>
+    </div>
+    <div class="hero-sub">
+      <span><strong id="count-active">0</strong>dívidas</span>
+      <span class="sep">·</span>
+      <span><strong id="count-people">0</strong>credores</span>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="active">
+      Ativas <span class="tab-count" id="tab-count-active">0</span>
+    </button>
+    <button class="tab" data-tab="paid">
+      Pagas <span class="tab-count" id="tab-count-paid">0</span>
+    </button>
+  </nav>
+
+  <div class="list" id="list"></div>
+
+  <section class="breakdown" id="breakdown" style="display:none">
+    <h2 class="breakdown-title">Por credor</h2>
+    <div id="breakdown-list"></div>
+  </section>
+</div>
+
+<button class="fab" id="fab" aria-label="Adicionar dívida">+</button>
+
+<div class="backdrop" id="backdrop"></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <h2 class="sheet-title" id="sheet-title">Nova dívida</h2>
+
+  <div class="field">
+    <label for="in-who">Para quem</label>
+    <input type="text" id="in-who" placeholder="Nome da pessoa ou lugar" autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label for="in-amount">Valor (R$)</label>
+    <input type="number" id="in-amount" inputmode="decimal" step="0.01" placeholder="0,00">
+  </div>
+
+  <div class="field">
+    <label for="in-note">Descrição (opcional)</label>
+    <textarea id="in-note" placeholder="Ex: almoço de domingo"></textarea>
+  </div>
+
+  <div class="sheet-actions">
+    <button class="btn btn-ghost" id="btn-cancel">Cancelar</button>
+    <button class="btn btn-primary" id="btn-save" disabled>Salvar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Storage (localStorage com fallback) ── */
+const store = {
+  _fallback: [],
+  _key: 'devo.debts.v1',
+  load() {
+    try {
+      return JSON.parse(localStorage.getItem(this._key) || '[]');
+    } catch (e) {
+      return this._fallback;
+    }
+  },
+  save(data) {
+    try {
+      localStorage.setItem(this._key, JSON.stringify(data));
+    } catch (e) {
+      this._fallback = data;
+    }
+  }
+};
+
+/* ── State ── */
+let debts = store.load();
+let currentTab = 'active';
+
+/* ── Utils ── */
+const fmt = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtDate = (ts) => new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+/* ── Render ── */
+function render() {
+  const active = debts.filter(d => !d.paid);
+  const paid = debts.filter(d => d.paid);
+
+  // total
+  const total = active.reduce((s, d) => s + d.amount, 0);
+  const [intPart, centPart] = fmt(total).split(',');
+  document.getElementById('total-int').textContent = intPart;
+  document.getElementById('total-cents').textContent = ',' + centPart;
+
+  // counters
+  document.getElementById('count-active').textContent = active.length;
+  document.getElementById('count-people').textContent = new Set(active.map(d => d.who.toLowerCase())).size;
+  document.getElementById('tab-count-active').textContent = active.length;
+  document.getElementById('tab-count-paid').textContent = paid.length;
+
+  // list
+  const list = document.getElementById('list');
+  const items = currentTab === 'active' ? active : paid;
+  const sorted = [...items].sort((a, b) => b.created - a.created);
+
+  if (sorted.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">${currentTab === 'active' ? '—' : '✓'}</div>
+        <div class="empty-text">${currentTab === 'active' ? 'Nenhuma dívida ativa.<br>Toque em + para registrar uma.' : 'Nenhuma dívida paga ainda.'}</div>
+      </div>`;
+  } else {
+    list.innerHTML = sorted.map(d => `
+      <div class="item ${d.paid ? 'paid' : ''}" data-id="${d.id}">
+        <div class="item-check" data-act="toggle" role="button" aria-label="Marcar como pago">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7"/></svg>
+        </div>
+        <div class="item-main">
+          <div class="item-who">${escapeHtml(d.who)}</div>
+          <div class="item-meta">${d.note ? escapeHtml(d.note) + ' · ' : ''}${fmtDate(d.created)}</div>
+        </div>
+        <div class="item-amount">R$ ${fmt(d.amount)}</div>
+        <button class="item-del" data-act="delete" aria-label="Excluir">×</button>
+      </div>
+    `).join('');
+  }
+
+  // breakdown
+  const bd = document.getElementById('breakdown');
+  const bdList = document.getElementById('breakdown-list');
+  if (active.length >= 2) {
+    const byPerson = {};
+    active.forEach(d => {
+      const key = d.who.trim();
+      byPerson[key] = (byPerson[key] || 0) + d.amount;
+    });
+    const rows = Object.entries(byPerson).sort((a, b) => b[1] - a[1]);
+    const max = rows[0][1];
+    bd.style.display = 'block';
+    bdList.innerHTML = rows.map(([name, val]) => `
+      <div class="breakdown-row">
+        <div class="breakdown-name">${escapeHtml(name)}</div>
+        <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:${(val/max)*100}%"></div></div>
+        <div class="breakdown-amount">R$ ${fmt(val)}</div>
+      </div>
+    `).join('');
+  } else {
+    bd.style.display = 'none';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ── Events ── */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentTab = t.dataset.tab;
+    render();
+  });
+});
+
+document.getElementById('list').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const item = btn.closest('.item');
+  const id = item.dataset.id;
+  const act = btn.dataset.act;
+  const debt = debts.find(d => d.id === id);
+  if (!debt) return;
+
+  if (act === 'toggle') {
+    debt.paid = !debt.paid;
+    debt.paidAt = debt.paid ? Date.now() : null;
+    store.save(debts);
+    render();
+    toast(debt.paid ? 'Marcada como paga ✓' : 'Reaberta');
+  } else if (act === 'delete') {
+    if (confirm(`Excluir dívida com ${debt.who}?`)) {
+      debts = debts.filter(d => d.id !== id);
+      store.save(debts);
+      render();
+      toast('Dívida excluída');
+    }
+  }
+});
+
+/* ── Modal ── */
+const sheet = document.getElementById('sheet');
+const backdrop = document.getElementById('backdrop');
+const inWho = document.getElementById('in-who');
+const inAmount = document.getElementById('in-amount');
+const inNote = document.getElementById('in-note');
+const btnSave = document.getElementById('btn-save');
+
+function openSheet() {
+  sheet.classList.add('open');
+  backdrop.classList.add('open');
+  inWho.value = '';
+  inAmount.value = '';
+  inNote.value = '';
+  btnSave.disabled = true;
+  setTimeout(() => inWho.focus(), 300);
+}
+
+function closeSheet() {
+  sheet.classList.remove('open');
+  backdrop.classList.remove('open');
+  document.activeElement && document.activeElement.blur();
+}
+
+function validate() {
+  const ok = inWho.value.trim() && parseFloat(inAmount.value) > 0;
+  btnSave.disabled = !ok;
+}
+
+document.getElementById('fab').addEventListener('click', openSheet);
+document.getElementById('btn-cancel').addEventListener('click', closeSheet);
+backdrop.addEventListener('click', closeSheet);
+[inWho, inAmount].forEach(el => el.addEventListener('input', validate));
+
+btnSave.addEventListener('click', () => {
+  const debt = {
+    id: uid(),
+    who: inWho.value.trim(),
+    amount: parseFloat(inAmount.value),
+    note: inNote.value.trim(),
+    created: Date.now(),
+    paid: false,
+    paidAt: null
+  };
+  debts.push(debt);
+  store.save(debts);
+  render();
+  closeSheet();
+  toast('Dívida adicionada');
+});
+
+/* ── Toast ── */
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ── Header date ── */
+document.getElementById('date').textContent = new Date().toLocaleDateString('pt-BR', {
+  day: '2-digit', month: 'long'
+});
+
+/* ── Initial render ── */
+render();
+</script>
+
+</body>
+</html>
